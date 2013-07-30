@@ -1,4 +1,4 @@
-//a program that alphabetically sorts all the variables in a c program 
+//a program that lexicographically sorts all the variables in a c program 
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
