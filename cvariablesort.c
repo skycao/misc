@@ -2,9 +2,10 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "pgetline.c"
-#include "addtree.c"
+//#include "addtree.c"
 #define MAXWORD 100 //maximum length of a word
 #define MAXLINE 1000
 #define sizeofvt 4 //number of valid types
@@ -13,7 +14,17 @@
 int pgetline(char *, int);
 struct tnode *processline(char *, struct tnode *);
 int istype(char *); //return 1 if char * is a variable type
+void treeprint(struct tnode *);
+struct tnode *addtree(struct tnode *, char *);
+struct tnode *talloc(void);
 char *validtypes[sizeofvt] = {"char", "int", "float", "double"}; //basic data types in C
+
+struct tnode {
+  char *word;
+  int count;
+  struct tnode *left;
+  struct tnode *right;
+};
 
 main()
 {
@@ -21,8 +32,10 @@ main()
   struct tnode *root;
 
   root = NULL;
-  while(pgetline(line, MAXLINE) > 0) //while not EOF
+  while(pgetline(line, MAXLINE) > 0) {//while not EOF
+    printf("%s", line);
     root = processline(line, root); //process line, keep track of binary tree
+  }
   treeprint(root);
   return 0;
 }
@@ -58,6 +71,8 @@ struct tnode *processline(char *line, struct tnode *root)
     if(ignore) //ignore character
       line++;
     else {
+      if(*line == '#') //preprocessor line
+	break;
       if(*line == '\"') {//string
 	ignore = 1;
 	line++;
@@ -73,7 +88,7 @@ struct tnode *processline(char *line, struct tnode *root)
 	}
       }
 
-      if(isalnum(*line)) { //line is alphanumeric
+      if(isalnum(*line)) { //character is alphanumeric
 	pword = word; //reset pword to point at beginning of word array
 	while(*line != '\0' && *line != '\n' && !isspace(*line)) { //get the next word in line
 	  *pword = *line;
@@ -96,6 +111,8 @@ struct tnode *processline(char *line, struct tnode *root)
 	  //var is used instead of pvar because pvar points to '\0' while var is the entire word
 	}
       }
+      else //if character is not alphanumeric
+	line++; //increment line
     }
   }
   return root;
@@ -110,3 +127,37 @@ int istype(char *word)
       return 1;
   return 0;
 }
+
+//modified treeprint, does not print out count
+void treeprint(struct tnode *p)
+{
+  if(p != NULL) {
+    treeprint(p->left);
+    printf("%s\n", p->word);
+    treeprint(p->right);
+  }
+}
+
+struct tnode *addtree(struct tnode *p, char *w)
+{
+  int cond;
+
+  if(p == NULL) {
+    p = talloc();
+    p->word = strdup(w);
+    p->count = 1;
+    p->left = p->right = NULL;
+  } else if((cond = strcmp(w, p->word)) == 0)
+    p->count++;
+  else if(cond < 0)
+    p->left = addtree(p->left, w);
+  else
+    p->right = addtree(p->right, w);
+  return p;
+}
+
+struct tnode *talloc(void)
+{
+  return (struct tnode *) malloc(sizeof(struct tnode));
+}
+
