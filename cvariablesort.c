@@ -13,7 +13,7 @@
 //int getword(char *, int);
 int pgetline(char *, int);
 struct tnode *processline(char *, struct tnode *);
-int istype(char *); //return 1 if char * is a variable type
+int istype(char *);
 void treeprint(struct tnode *);
 struct tnode *addtree(struct tnode *, char *);
 struct tnode *talloc(void);
@@ -33,7 +33,6 @@ main()
 
   root = NULL;
   while(pgetline(line, MAXLINE) > 0) {//while not EOF
-    printf("%s", line);
     root = processline(line, root); //process line, keep track of binary tree
   }
   treeprint(root);
@@ -79,7 +78,7 @@ struct tnode *processline(char *line, struct tnode *root)
 	continue;
       }
       if(*line == '/') { //comment
-	if(*(line + 1) == '/') 
+	if(*(line + 1) == '/')
 	  break;
 	else if(*(line + 1) == '*') {
 	  ignore = 1;
@@ -94,7 +93,7 @@ struct tnode *processline(char *line, struct tnode *root)
 	  *pword = *line;
 	  pword++;
 	  line++;
-	} 
+	}
 	*pword = '\0'; //pword is a string, so must add '\0'
 	if(istype(word)) { //if word is a type, then there must be a variable declaration
 	  //word is used instead of pword, because pword points to '\0' while word is the entire word
@@ -107,7 +106,13 @@ struct tnode *processline(char *line, struct tnode *root)
 	    line++;
 	  }
 	  *pvar = '\0'; //pvar is a string, so must add '\0'
-	  root = addtree(root, var); //add variable to binary tree
+	  if(*line == '(') { //if var is actually a function
+	    line++;
+	    while(*line != ')' && *line != '\n' && *line != '\0')
+	      line++;
+	  }
+	  else //var is a variable not a function
+	    root = addtree(root, var); //add variable to binary tree
 	  //var is used instead of pvar because pvar points to '\0' while var is the entire word
 	}
       }
@@ -160,4 +165,3 @@ struct tnode *talloc(void)
 {
   return (struct tnode *) malloc(sizeof(struct tnode));
 }
-
