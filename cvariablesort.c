@@ -97,7 +97,7 @@ struct tnode *processline(char *line, struct tnode *root)
 	*pword = '\0'; //pword is a string, so must add '\0'
 	if(istype(word)) { //if word is a type, then there must be a variable declaration
 	  //word is used instead of pword, because pword points to '\0' while word is the entire word
-	  while(!isalnum(*line)) //skip to when the variable's name starts
+	  while(!isalnum(*line) && *line != '\0') //skip to when the variable's name starts
 	    line++;
 	  pvar = var; //reset pvar to point at beginning of var array
 	  while(isalnum(*line)) { //copy variable to var
@@ -108,11 +108,12 @@ struct tnode *processline(char *line, struct tnode *root)
 	  *pvar = '\0'; //pvar is a string, so must add '\0'
 	  if(*line == '(') { //if var is actually a function
 	    line++;
-	    while(*line != ')' && *line != '\n' && *line != '\0')
+	    while(*line != ')' && *line != '\0')
 	      line++;
 	  }
 	  else //var is a variable not a function
-	    root = addtree(root, var); //add variable to binary tree
+	    if(var[0] != '\0')
+	      root = addtree(root, var); //add variable to binary tree
 	  //var is used instead of pvar because pvar points to '\0' while var is the entire word
 	}
       }
