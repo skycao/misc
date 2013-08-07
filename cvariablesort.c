@@ -5,21 +5,23 @@
 #include <stdlib.h>
 
 #include "pgetline.c"
-//#include "addtree.c"
 #define MAXWORD 100 //maximum length of a word
 #define MAXLINE 1000
 #define sizeofvt 4 //number of valid types
 #define BREAK -1
 #define CONTINUE -2
 
-//int getword(char *, int);
 int pgetline(char *, int);
 struct tnode *processline(char *, struct tnode *);
+
+//functions used in processline
 int istype(char *);
 int ignoreend(char *);
 int specialchar(char *line);
 int getnextword(char *line);
+int getnextvar(char *line);
 
+//binary tree functions implemented in K&R
 void treeprint(struct tnode *);
 struct tnode *addtree(struct tnode *, char *);
 struct tnode *talloc(void);
@@ -50,61 +52,26 @@ int ignore = 0; //tells processline to ignore characters that are part of commen
 //it is global because comments can span multiple lines,
 //thus ignore has to retain its value across multiple calls of processline
 
-//process a line at a time
-//this is the heart of the program
-//it takes a line and adds all declared variables to a binary tree
-//comments and strings are ignored
-
+//the following variables are made global so getnextword and getnextvar can use them
 char word[MAXWORD];
 char var[MAXWORD];
 char *pword = word;
 char *pvar = var;
 
+//process a line at a time
+//this is the heart of the program
+//it takes a line and adds all declared variables to a binary tree
+//comments and strings are ignored
 struct tnode *processline(char *line, struct tnode *root)
 {
-  /*char word[MAXWORD];
-  char var[MAXWORD];
-  char *pword = word;
-  char *pvar = var;*/
-
   while(*line != '\0' && *line != '\n') {
     while(isspace(*line)) //skip whitespace
       line++;
 
-    /*if(ignore == 1 && *line == '*' && *(line + 1) == '/') { //end of comment
-      ignore = 0;
-      line += 2;
-    }
-    if(ignore == 1 && *line == '\"') { //end of string
-      ignore = 0;
-      line++;
-    }
-
-    if(ignore) //ignore character
-      line++;
-    */
-
     if(ignore)
-      line += ignoreend(line);
+      line += ignoreend(line); //process if ignore should be switched to 0
 
     else {
-      /*if(*line == '#') //preprocessor line
-	break;
-      if(*line == '\"') {//string
-	ignore = 1;
-	line++;
-	continue;
-      }
-      if(*line == '/') { //comment
-	if(*(line + 1) == '/')
-	  break;
-	else if(*(line + 1) == '*') {
-	  ignore = 1;
-	  line++;
-	  continue;
-	}
-      }
-      */
       int c = specialchar(line); //see if line has any special characters
       if(c == BREAK)
 	break;
@@ -113,28 +80,9 @@ struct tnode *processline(char *line, struct tnode *root)
 	continue;
       }
 
-      if(isalnum(*line)) { //character is alphanumeric
-	/*pword = word; //reset pword to point at beginning of word array
-	while(*line != '\0' && *line != '\n' && !isspace(*line)) { //get the next word in line
-	  *pword = *line;
-	  pword++;
-	  line++;
-	}
-	*pword = '\0'; //pword is a string, so must add '\0'
-	*/
+      if(isalnum(*line)) {
 	line += getnextword(line);
-	if(istype(word)) { //if word is a type, then there must be a variable declaration
-	  //word is used instead of pword, because pword points to '\0' while word is the entire word
-	  /*while(!isalnum(*line) && *line != '\0') //skip to when the variable's name starts
-	    line++;
-	  pvar = var; //reset pvar to point at beginning of var array
-	  while(isalnum(*line)) { //copy variable to var
-	    *pvar = *line;
-	    pvar++;
-	    line++;
-	  }
-	  *pvar = '\0'; //pvar is a string, so must add '\0'
-	  */
+	if(istype(word)) {
 	  line += getnextvar(line);
 	  if(*line == '(') { //if var is actually a function
 	    line++;
@@ -144,11 +92,10 @@ struct tnode *processline(char *line, struct tnode *root)
 	  else //var is a variable not a function
 	    if(var[0] != '\0')
 	      root = addtree(root, var); //add variable to binary tree
-	  //var is used instead of pvar because pvar points to '\0' while var is the entire word
 	}
       }
       else //if character is not alphanumeric
-	line++; //increment line
+	line++;
     }
   }
   return root;
@@ -211,7 +158,7 @@ int ignoreend(char *line)
     return 1;
 }
 
-int specialchar(char *line)
+int specialchar(char *line) //process any special characters
 {
   switch(*line) {
   case '#':
@@ -231,28 +178,9 @@ int specialchar(char *line)
     break;
   }
   return 1;
-
-  /*
-  if(*line == '#') //preprocessor line
-    break;
-  if(*line == '\"') {//string
-    ignore = 1;
-    line++;
-    continue;
-  }
-  if(*line == '/') { //comment
-    if(*(line + 1) == '/')
-      break;
-    else if(*(line + 1) == '*') {
-      ignore = 1;
-      line++;
-      continue;
-    }
-  }
-  */
 }
 
-int getnextword(char *line)
+int getnextword(char *line) //get next word in line
 {
   pword = word; //reset pword to point at beginning of word array
   while(*line != '\0' && *line != '\n' && !isspace(*line)) { //get the next word in line
@@ -264,7 +192,7 @@ int getnextword(char *line)
   return (pword - word);
 }
 
-int getnextvar(char *line)
+int getnextvar(char *line) //get next variable in line
 {
   int gap = 0;
   while(*line != '\0' && *line != '\n' && !isalnum(*line)) //skip to when the variable's name starts
