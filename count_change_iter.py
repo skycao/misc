@@ -1,3 +1,11 @@
+""" count_change_iter is a function that takes an integer amount
+and list of integers denoms, and returns the number of ways to
+partition amount using only integers from denoms.
+For example, if amount = 100, and denoms = [1, 5, 10, 25, 50, 100]
+then count_change_iter(amount, denoms) returns the number of ways
+to make change for a dollar.
+"""
+
 def count_change_iter(amount, denoms):
     """
     >>> amount, denoms = 100, [1, 5, 10, 25, 50, 100]
