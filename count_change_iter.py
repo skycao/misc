@@ -3,7 +3,12 @@ and list of integers denoms, and returns the number of ways to
 partition amount using only integers from denoms.
 For example, if amount = 100, and denoms = [1, 5, 10, 25, 50, 100]
 then count_change_iter(amount, denoms) returns the number of ways
-to make change for a dollar.
+to make change for a dollar. The function uses the technique of
+generating functions, which corresponds each integer in denoms
+to a certain polynomial. If we multiply all the corresponding polynomials
+together, then the number of ways to partition amount using only integers
+from denoms is exactly the coefficient of the term in the resulting polynomial
+that is raised to a power of amount.
 """
 
 def count_change_iter(amount, denoms):
